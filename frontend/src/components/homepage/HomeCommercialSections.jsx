@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { ORVIANE_CONTACT } from '../../data/contactChannels';
 
 const clientRoutes = [
   {
@@ -18,7 +19,7 @@ const clientRoutes = [
     title: 'Resolver con asesoria',
     copy: 'Para regalos importantes, compromiso o dudas de presupuesto, conviene una guia directa.',
     ctaLabel: 'Agendar por WhatsApp',
-    href: 'https://wa.me/573156347878?text=Hola,%20quiero%20agendar%20una%20asesoria%20con%20Orviane.',
+    href: ORVIANE_CONTACT.whatsappUrl,
   },
 ];
 
@@ -118,8 +119,8 @@ const faqItems = [
 ];
 
 const contactSignals = [
-  { label: 'WhatsApp', value: '+57 315 634 7878' },
-  { label: 'Ubicacion', value: 'Sincelejo, Sucre, Colombia' },
+  { label: 'WhatsApp', value: 'Canal QR actualizado' },
+  { label: 'Direccion', value: ORVIANE_CONTACT.address, href: ORVIANE_CONTACT.mapsUrl },
   { label: 'Horario', value: 'Lunes a sabado, 9:00 a.m. a 6:00 p.m.' },
   { label: 'Atencion', value: 'Cita previa o seguimiento por WhatsApp' },
 ];
@@ -275,14 +276,22 @@ const HomeCommercialSections = () => {
             {contactSignals.map((item) => (
               <div key={item.label}>
                 <span>{item.label}</span>
-                <strong>{item.value}</strong>
+                <strong>
+                  {item.href ? (
+                    <a href={item.href} target="_blank" rel="noreferrer">
+                      {item.value}
+                    </a>
+                  ) : (
+                    item.value
+                  )}
+                </strong>
               </div>
             ))}
           </div>
 
           <div className="home-contact-actions">
             <a
-              href="https://wa.me/573156347878?text=Hola,%20quiero%20una%20asesoria%20con%20Orviane."
+              href={ORVIANE_CONTACT.whatsappUrl}
               target="_blank"
               rel="noreferrer"
               className="home-primary-cta"

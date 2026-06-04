@@ -597,7 +597,7 @@ function buildValuationMessage(valuation, budgetHint = '') {
     return [
       `Como referencia interna, ${valuation.materialSubject} está en ${valuation.pricePerGramFormatted} por gramo.`,
       'Ese es solo el punto de partida del material: una joya terminada también suma merma, aleación, engaste, acabado, complejidad y mano de obra.',
-      `Referencia de mercado: ${valuation.marketReference.asOf}. La TRM de referencia es aproximadamente ${valuation.marketReference.usdCop.toLocaleString('es-CO')} pesos colombianos por un dólar estadounidense.`,
+      `Referencia interna actualizada al ${valuation.marketReference.asOf}; todos los valores están expresados en pesos colombianos.`,
       'Si me dices qué pieza quieres y cuántos gramos tendría, te calculo un rango más realista.',
     ].join(' ');
   }
@@ -666,8 +666,7 @@ function buildValuationQuickReplies(valuation) {
 
 function buildValuationKnowledgePrompt() {
   return [
-    `REFERENCIA OBLIGATORIA DE MONEDA: Todos los precios y valores que menciones DEBEN estar expresados EXCLUSIVAMENTE en PESOS COLOMBIANOS (COP). Nunca uses la palabra "dólares", "USD", "dólar americano" ni el símbolo $ de forma ambigua. Si usas el símbolo $, aclara inmediatamente "pesos colombianos" o "COP".`,
-    `TRM de referencia: ${MARKET_REFERENCE.usdCop.toLocaleString('es-CO')} pesos colombianos por 1 dólar estadounidense (dato solo para contexto interno, no lo menciones a menos que te pregunten explícitamente por la TRM).`,
+    'REFERENCIA OBLIGATORIA DE MONEDA: Todos los precios y valores que menciones DEBEN estar expresados EXCLUSIVAMENTE en PESOS COLOMBIANOS (COP). Nunca uses monedas extranjeras, MXN, USD ni el símbolo $ de forma ambigua. Si usas el símbolo $, aclara inmediatamente "pesos colombianos" o "COP".',
     `Metales por gramo SIEMPRE en pesos colombianos: oro amarillo 18 quilates 399.000 COP; oro blanco 18 quilates 419.000 COP; oro rosado 18 quilates 399.000 COP; oro amarillo 14 quilates 310.000 COP; oro blanco 14 quilates 325.000 COP; oro rosado 14 quilates 310.000 COP; oro 24 quilates 532.000 COP; plata 925 8.200 COP; plata pura 8.900 COP; platino 227.000 COP; paladio 159.000 COP; cobre 50 COP; aluminio 15 COP.`,
     `Piedras SIEMPRE en pesos colombianos: diamante fino 9.000.000 a 30.000.000 COP por quilate; diamante de laboratorio 900.000 a 4.500.000 COP por quilate; esmeralda fina 2.900.000 a 18.300.000 COP por quilate; esmeralda Muzo o extra fina 22.000.000 a 183.000.000 COP por quilate; zafiro fino 5.500.000 a 18.300.000 COP por quilate; rubí fino 7.300.000 a 36.700.000 COP por quilate; perla agua dulce 80.000 a 750.000 COP por pieza; perla Akoya 450.000 a 3.300.000 COP por pieza; perla Mar del Sur 1.200.000 a 66.000.000 COP por pieza.`,
     'REGLA INQUEBRANTABLE: Cuando des cualquier rango de precio o valor de material, di explícitamente "pesos colombianos" o "COP" al menos una vez en la respuesta. Nunca des por sentado que el cliente entiende que son pesos. Ejemplo correcto: "el oro amarillo de 18 quilates está aproximadamente en 399.000 pesos colombianos por gramo".',
@@ -679,10 +678,10 @@ function buildCurrencySafetyBlock() {
   return [
     'SEGURIDAD DE MONEDA (OBLIGATORIO CUMPLIR):',
     '- Hablas exclusivamente en el contexto de Orviane en Colombia. Todos los precios son en PESOS COLOMBIANOS.',
-    '- NUNCA digas "dólares", "USD", "dólar", "dólares americanos" ni uses "$" sin aclarar de inmediato que son pesos colombianos.',
+    '- NUNCA digas monedas extranjeras, USD, MXN, pesos mexicanos ni uses "$" sin aclarar de inmediato que son pesos colombianos.',
     '- Cuando menciones cualquier número de precio (material, piedra o pieza terminada), debes decir al menos una vez en la respuesta "pesos colombianos" o "COP".',
     '- Ejemplos de lenguaje correcto: "399.000 pesos colombianos por gramo", "entre 2.8 y 4.1 millones de pesos colombianos", "aproximadamente 18 millones de COP por quilate".',
-    '- Si el usuario pregunta por precio internacional o compara con el exterior, puedes mencionar la TRM solo como dato de referencia, pero el valor que des siempre debe estar convertido y expresado en pesos colombianos.',
+    '- Si el usuario pregunta por precio internacional o compara con el exterior, redirige la respuesta a referencias internas en pesos colombianos; no des valores en otra moneda.',
     '- Esta regla es más importante que sonar elegante. Prefiere ser explícito y repetitivo con la moneda antes que dar un número solo con el símbolo $.',
   ].join(' ');
 }

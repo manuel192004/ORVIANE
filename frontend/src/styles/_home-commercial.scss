@@ -273,6 +273,16 @@
   line-height: 1.6;
 }
 
+.home-contact-signals strong a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.home-contact-signals strong a:hover {
+  color: #d1ba8d;
+}
+
 .home-contact-actions {
   display: flex;
   flex-wrap: wrap;

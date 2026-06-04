@@ -97,6 +97,16 @@
   color: #fff1d4;
 }
 
+.conversion-signal-card strong a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.conversion-signal-card strong a:hover {
+  color: var(--accent-gold-soft);
+}
+
 .conversion-actions,
 .conversion-form-actions {
   display: flex;

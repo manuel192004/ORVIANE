@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import ContactIcon from '../components/common/ContactIcon';
 import PageMeta from '../components/common/PageMeta';
 import { useAuth } from '../context/AuthContext';
-import { apiFetch } from '../lib/api';
+import { ORVIANE_CONTACT } from '../data/contactChannels';
+import { API_BASE_URL, apiFetch } from '../lib/api';
 import '../styles/_operationspage.scss';
 
 const initialContactForm = {
@@ -36,6 +38,7 @@ const initialLinkForm = {
   url: '',
   description: '',
   category: '',
+  icon: '',
 };
 
 const initialOperationsLoginForm = {
@@ -106,8 +109,12 @@ function ConnectorCard({ title, description, accent, bullets }) {
   );
 }
 
+const buildOperationsHeaders = (token) => {
+  return token ? { 'x-orviane-operations-token': token } : {};
+};
+
 function OperationsPage() {
-  const { login, user, isAuthenticated, isBootstrapping } = useAuth();
+  const { login, user, token, isBootstrapping } = useAuth();
 
   const isAdmin = user?.role === 'admin';
 
@@ -141,9 +148,6 @@ function OperationsPage() {
     loadDashboard('');
   };
 
-  const buildOperationsHeaders = (token) => {
-    return token ? { 'x-orviane-operations-token': token } : {};
-  };
   const [dashboard, setDashboard] = useState({
     ready: false,
     summary: {
@@ -155,14 +159,18 @@ function OperationsPage() {
       tasks: 0,
       overdueTasks: 0,
       events: 0,
+      users: 0,
+      demoUsers: 0,
+      orders: 0,
     },
     recentContacts: [],
     recentTransactions: [],
     recentTasks: [],
     recentEvents: [],
+    recentUsers: [],
     linktreeLinks: [],
   });
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [contactForm, setContactForm] = useState(initialContactForm);
@@ -196,13 +204,14 @@ function OperationsPage() {
     }
   };
 
-  const loadDashboard = async (token = operationsToken) => {
+  const loadDashboard = useCallback(async (accessToken = operationsToken) => {
     setIsLoading(true);
     setError('');
 
     try {
       const data = await apiFetch('/api/operations/dashboard', {
-        headers: buildOperationsHeaders(token),
+        token,
+        headers: buildOperationsHeaders(accessToken),
       });
       setDashboard(data);
     } catch (loadError) {
@@ -210,11 +219,13 @@ function OperationsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [operationsToken, token]);
 
   useEffect(() => {
-    // Do not auto-load on mount without token to avoid errors
-  }, []);
+    if (!isBootstrapping && isAdmin) {
+      loadDashboard(operationsToken);
+    }
+  }, [isBootstrapping, isAdmin, loadDashboard, operationsToken]);
 
   const handleSubmit = (kind, formState, resetForm) => async (event) => {
     event.preventDefault();
@@ -237,6 +248,66 @@ function OperationsPage() {
       await loadDashboard();
     } catch (submitError) {
       setError(submitError.message);
+    } finally {
+      setActiveAction('');
+    }
+  };
+
+  const handleDemoSeed = async () => {
+    setActiveAction('demo-seed');
+    setIsLoading(true);
+    setError('');
+    setMessage('');
+
+    try {
+      const response = await apiFetch('/api/operations/demo-seed', {
+        method: 'POST',
+        token,
+        headers: buildOperationsHeaders(operationsToken),
+      });
+
+      setDashboard(response.dashboard);
+      setMessage(
+        `Demo Make sincronizada: ${response.result.users} usuarios, ${response.result.orders} pedidos y ${response.result.contacts} contactos CRM.`,
+      );
+    } catch (seedError) {
+      setError(seedError.message);
+    } finally {
+      setIsLoading(false);
+      setActiveAction('');
+    }
+  };
+
+  const handleExportExcel = async () => {
+    setActiveAction('export-excel');
+    setError('');
+    setMessage('');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/operations/export.xlsx`, {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...buildOperationsHeaders(operationsToken),
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.error || 'No se pudo descargar el Excel.');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `orviane-operaciones-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      setMessage('Excel de operaciones descargado con la informacion sincronizada.');
+    } catch (exportError) {
+      setError(exportError.message);
     } finally {
       setActiveAction('');
     }
@@ -354,9 +425,15 @@ function OperationsPage() {
             coordinar CRM, WhatsApp, ERP, Trello, Power BI y Linktree sin duplicar procesos.
           </p>
           <div className="ops-hero-actions">
-            <a className="ops-primary-button" href="https://wa.me/573156347878?text=Hola,%20quiero%20activar%20el%20flujo%20operativo%20de%20Orviane." target="_blank" rel="noreferrer">
+            <a className="ops-primary-button" href={ORVIANE_CONTACT.whatsappUrl} target="_blank" rel="noreferrer">
               Activar WhatsApp
             </a>
+            <button type="button" className="ops-primary-button" onClick={handleDemoSeed} disabled={activeAction === 'demo-seed'}>
+              {activeAction === 'demo-seed' ? 'Sincronizando...' : 'Sincronizar demo Make'}
+            </button>
+            <button type="button" className="ops-secondary-button" onClick={handleExportExcel} disabled={activeAction === 'export-excel'}>
+              {activeAction === 'export-excel' ? 'Preparando Excel...' : 'Descargar Excel'}
+            </button>
             <a className="ops-secondary-button" href="/linktree">
               Ver Linktree publico
             </a>
@@ -401,6 +478,8 @@ function OperationsPage() {
       {message ? <p className="ops-status is-success">{message}</p> : null}
 
       <section className="ops-metrics-grid">
+        <MetricCard label="Usuarios demo" value={dashboard.summary.demoUsers || dashboard.summary.users || 0} tone="neutral" helper={`${dashboard.summary.users || 0} cuentas totales en backend.`} />
+        <MetricCard label="Pedidos" value={dashboard.summary.orders || 0} tone="green" helper="Ventas tipo pedido desde Make." />
         <MetricCard label="Contactos" value={dashboard.summary.contacts} tone="gold" helper="Leads y clientes detectados." />
         <MetricCard label="Ventas" value={formatCurrency(dashboard.summary.sales)} tone="green" helper="Ingreso bruto acumulado." />
         <MetricCard label="Gastos" value={formatCurrency(dashboard.summary.expenses)} tone="red" helper="Salidas registradas." />
@@ -536,6 +615,10 @@ function OperationsPage() {
                   <input value={linkForm.category} onChange={(event) => setLinkForm((current) => ({ ...current, category: event.target.value }))} />
                 </label>
                 <label>
+                  <span>Icono</span>
+                  <input value={linkForm.icon} onChange={(event) => setLinkForm((current) => ({ ...current, icon: event.target.value }))} placeholder="instagram, facebook, telegram..." />
+                </label>
+                <label>
                   <span>Descripcion</span>
                   <textarea rows="3" value={linkForm.description} onChange={(event) => setLinkForm((current) => ({ ...current, description: event.target.value }))} />
                 </label>
@@ -606,10 +689,15 @@ function OperationsPage() {
 
             <div className="ops-linktree-preview">
               {activeLinks.length ? (
-                activeLinks.slice(0, 6).map((link) => (
+                activeLinks.slice(0, 8).map((link) => (
                   <a key={link.linkId} href={link.url} className="ops-linktree-item" target={link.url.startsWith('http') ? '_blank' : '_self'} rel={link.url.startsWith('http') ? 'noreferrer' : undefined}>
-                    <strong>{link.label}</strong>
-                    <span>{link.description || link.category || 'Acceso rapido'}</span>
+                    <span className="ops-linktree-icon">
+                      <ContactIcon name={link.icon || link.linkKey} />
+                    </span>
+                    <span className="ops-linktree-copy">
+                      <strong>{link.label}</strong>
+                      <span>{link.description || link.category || 'Acceso rapido'}</span>
+                    </span>
                   </a>
                 ))
               ) : (
@@ -617,6 +705,22 @@ function OperationsPage() {
               )}
             </div>
           </section>
+
+          <DataList
+            eyebrow="Usuarios"
+            title="Cuentas sincronizadas"
+            items={dashboard.recentUsers}
+            emptyLabel="Todavia no hay usuarios sincronizados."
+            renderItem={(item) => (
+              <article key={item.userId} className="ops-item-card">
+                <div>
+                  <strong>{item.fullName}</strong>
+                  <span>{item.role || 'customer'}</span>
+                </div>
+                <p>{item.email || item.whatsapp}</p>
+              </article>
+            )}
+          />
 
           <DataList
             eyebrow="Clientes recientes"

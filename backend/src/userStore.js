@@ -1,7 +1,7 @@
 const crypto = require('crypto');
-const { getDatabaseStatus, findUserByEmailInDatabase, findUserByGoogleSubInDatabase, findUserByIdInDatabase, upsertUserInDatabase } = require('./db');
+const { getDatabaseStatus, findUserByEmailInDatabase, findUserByGoogleSubInDatabase, findUserByIdInDatabase, listUsersInDatabase, upsertUserInDatabase } = require('./db');
 const {
-  listUsers,
+  listUsers: listUsersInFile,
   findUserByEmail: findUserByEmailInFile,
   findUserByGoogleSub: findUserByGoogleSubInFile,
   findUserById: findUserByIdInFile,
@@ -70,6 +70,17 @@ async function findUserByEmail(email) {
 
   const fileUser = await findUserByEmailInFile(email);
   return fileUser ? normalizeUser(fileUser) : null;
+}
+
+async function listUsers(limit = 200) {
+  if (isDatabaseReady()) {
+    return listUsersInDatabase(limit);
+  }
+
+  return (await listUsersInFile())
+    .map(normalizeUser)
+    .sort((left, right) => new Date(right.createdAt || 0).getTime() - new Date(left.createdAt || 0).getTime())
+    .slice(0, Number(limit));
 }
 
 async function findUserByGoogleSub(googleSub) {
@@ -189,6 +200,7 @@ function getUserStoreStatus() {
 }
 
 module.exports = {
+  listUsers,
   findUserByEmail,
   findUserByGoogleSub,
   findUserById,

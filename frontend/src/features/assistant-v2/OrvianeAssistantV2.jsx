@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
+import { ORVIANE_CONTACT } from '../../data/contactChannels';
 import { getCollectionCatalog, getCollectionInsights } from '../../lib/catalog';
 import '../../styles/_assistant-v2.scss';
 
@@ -78,8 +79,8 @@ function createMemory() {
   };
 }
 
-function buildWhatsappHref(message) {
-  return `https://wa.me/573156347878?text=${encodeURIComponent(message)}`;
+function buildWhatsappHref() {
+  return ORVIANE_CONTACT.whatsappUrl;
 }
 
 function createWelcomeMessages() {
@@ -566,11 +567,11 @@ const OrvianeAssistantV2 = () => {
   const [accountContext, setAccountContext] = useState(emptyAccountContext);
   const [pendingAction, setPendingAction] = useState(null);
   const [guidanceCard, setGuidanceCard] = useState(null);
-  const [diagnostics, setDiagnostics] = useState(emptyDiagnostics);
+  const [, setDiagnostics] = useState(emptyDiagnostics);
   const [isThinking, setIsThinking] = useState(false);
   const [chatError, setChatError] = useState('');
-  const [isLoadingContext, setIsLoadingContext] = useState(false);
-  const [loadedContextKey, setLoadedContextKey] = useState('');
+  const [, setIsLoadingContext] = useState(false);
+  const [, setLoadedContextKey] = useState('');
   const [appointmentForm, setAppointmentForm] = useState(() => createAppointmentState(user));
   const [formError, setFormError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -1049,45 +1050,63 @@ const OrvianeAssistantV2 = () => {
 
     window.speechSynthesis.cancel();
 
-    const utterance = new window.SpeechSynthesisUtterance(spokenText);
-    const voices = window.speechSynthesis.getVoices();
-    const spanishVoice = voices.find((voice) => /^es(-|_)/i.test(voice.lang));
+    // Dividimos el texto en oraciones para que suene más humano
+    const sentences = spokenText
+      .split(/(?<=[.!?])\s+/)
+      .filter((s) => s.trim().length > 0);
 
-    utterance.lang = 'es-CO';
-    utterance.rate = 0.94;
-    utterance.pitch = 0.98;
+    let currentIndex = 0;
 
-    if (spanishVoice) {
-      utterance.voice = spanishVoice;
-    }
+    const speakNext = () => {
+      if (currentIndex >= sentences.length) {
+        setIsSpeaking(false);
 
-    utterance.onstart = () => {
-      setIsSpeaking(true);
-      setVoiceStatus('Orvia está respondiendo.');
-    };
-
-    utterance.onend = () => {
-      setIsSpeaking(false);
-
-      if (options.resumeListening && voiceModeRef.current) {
-        setVoiceStatus('Te escucho de nuevo en un momento.');
-        voiceRestartTimerRef.current = window.setTimeout(() => {
-          startVoiceListening();
-        }, 450);
+        if (options.resumeListening && voiceModeRef.current) {
+          setVoiceStatus('Te escucho de nuevo en un momento.');
+          voiceRestartTimerRef.current = window.setTimeout(() => {
+            startVoiceListening();
+          }, 450);
+        } else if (voiceModeRef.current) {
+          setVoiceStatus('Pulsa Hablar para continuar la llamada.');
+        }
         return;
       }
 
-      if (voiceModeRef.current) {
-        setVoiceStatus('Pulsa Hablar para continuar la llamada.');
+      const sentence = sentences[currentIndex];
+      const utterance = new window.SpeechSynthesisUtterance(sentence);
+      const voices = window.speechSynthesis.getVoices();
+      const spanishVoice = voices.find((voice) => /^es(-|_)/i.test(voice.lang));
+
+      utterance.lang = 'es-CO';
+      utterance.rate = 0.92 + Math.random() * 0.06; // ligera variación natural
+      utterance.pitch = 0.97 + Math.random() * 0.05;
+
+      if (spanishVoice) {
+        utterance.voice = spanishVoice;
       }
+
+      utterance.onstart = () => {
+        if (currentIndex === 0) {
+          setIsSpeaking(true);
+          setVoiceStatus('Orvia está respondiendo.');
+        }
+      };
+
+      utterance.onend = () => {
+        currentIndex++;
+        // Pequeña pausa natural entre oraciones
+        setTimeout(speakNext, 180);
+      };
+
+      utterance.onerror = () => {
+        setIsSpeaking(false);
+        setVoiceStatus('No pude reproducir la voz, pero la respuesta quedó escrita en el chat.');
+      };
+
+      window.speechSynthesis.speak(utterance);
     };
 
-    utterance.onerror = () => {
-      setIsSpeaking(false);
-      setVoiceStatus('No pude reproducir la voz, pero la respuesta quedó escrita en el chat.');
-    };
-
-    window.speechSynthesis.speak(utterance);
+    speakNext();
   };
 
   const startVoiceListening = () => {
@@ -1252,7 +1271,7 @@ const OrvianeAssistantV2 = () => {
     setIsOpen(false);
   };
 
-  const openSavedDesignShortcut = () => {
+  const _openSavedDesignShortcut = () => {
     const savedDesign = accountContext.savedDesigns?.[0];
 
     if (!savedDesign) {
@@ -1275,7 +1294,7 @@ const OrvianeAssistantV2 = () => {
     closeAssistant();
   };
 
-  const openQuoteShortcut = () => {
+  const _openQuoteShortcut = () => {
     const quote = accountContext.quotes?.[0];
 
     if (!quote) {

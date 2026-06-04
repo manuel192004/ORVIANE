@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { ORVIANE_CONTACT } from '../../data/contactChannels';
 import '../../styles/_header.scss';
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const { user, isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const closeMenu = () => setMenuOpen(false);
   const handleLogout = () => {
     logout();
@@ -19,7 +20,7 @@ const Header = () => {
         <div className="header-topline-inner">
           <p>Sincelejo, Sucre | Citas previas y asesoria por WhatsApp</p>
           <div className="header-topline-actions">
-            <a href="https://wa.me/573156347878?text=Hola,%20quiero%20una%20asesoria%20con%20Orviane." target="_blank" rel="noreferrer">
+            <a href={ORVIANE_CONTACT.whatsappUrl} target="_blank" rel="noreferrer">
               WhatsApp
             </a>
             <Link to="/cuenta" onClick={closeMenu}>
@@ -47,7 +48,7 @@ const Header = () => {
             {accountLabel}
           </Link>
           <a
-            href="https://wa.me/573156347878?text=Hola,%20quiero%20agendar%20una%20asesoria%20con%20Orviane."
+            href={ORVIANE_CONTACT.whatsappUrl}
             target="_blank"
             rel="noreferrer"
             className="header-ghost-cta"
@@ -83,7 +84,7 @@ const Header = () => {
             <Link to="/colecciones" className="nav-link" onClick={closeMenu}>Colecciones</Link>
             <Link to="/cuenta" className="nav-link special-link" onClick={closeMenu}>{accountLabel}</Link>
             <a
-              href="https://wa.me/573156347878?text=Hola,%20quiero%20agendar%20una%20asesoria%20con%20Orviane."
+              href={ORVIANE_CONTACT.whatsappUrl}
               className="nav-link special-link"
               target="_blank"
               rel="noreferrer"

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import '../styles/_orvianepage.scss';
 import OrvianeConversionSection from '../components/common/OrvianeConversionSection';
 import PageMeta from '../components/common/PageMeta';
+import { ORVIANE_CONTACT } from '../data/contactChannels';
 
 const OrvianePage = () => {
   return (
@@ -96,7 +97,7 @@ const OrvianePage = () => {
           primaryAction={{ label: 'Ir al configurador', to: '/configurador' }}
           secondaryAction={{
             label: 'Agendar por WhatsApp',
-            href: 'https://wa.me/573156347878?text=Hola,%20quiero%20una%20asesoria%20con%20Orviane.',
+            href: ORVIANE_CONTACT.whatsappUrl,
             external: true,
           }}
           formTitle="Pide una cita para hablar tu idea"

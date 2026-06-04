@@ -6,6 +6,7 @@ const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
+const ExcelJS = require('exceljs');
 const jwt = require('jsonwebtoken');
 const { GoogleAuth, OAuth2Client } = require('google-auth-library');
 const {
@@ -42,6 +43,7 @@ const {
   removeSavedDesign,
 } = require('./fileStore');
 const {
+  listUsers,
   findUserByEmail,
   findUserByGoogleSub,
   findUserById,
@@ -314,17 +316,92 @@ function getTopValue(values) {
   return [...counts.entries()].sort((left, right) => right[1] - left[1])[0]?.[0] || '';
 }
 
+const ORVIANE_WHATSAPP_URL = 'https://wa.me/qr/JXM3LVGEI75HC1';
+const ORVIANE_INSTAGRAM_URL = 'https://www.instagram.com/manuel_s_s_o?igsh=bXA5YmJoaDlwejhw&utm_source=qr';
+const ORVIANE_FACEBOOK_URL = 'https://www.facebook.com/share/1CJKajqpYa/?mibextid=wwXIfr';
+const ORVIANE_TELEGRAM_URL = 'https://t.me/+573246007022';
+const ORVIANE_TIKTOK_URL = 'https://www.tiktok.com/@msso10.19?is_from_webapp=1&sender_device=pc';
+const ORVIANE_MAPS_URL = 'https://maps.app.goo.gl/WnmBKxunCvwCd4Ls7';
+const ORVIANE_EMAIL = 'manuelsebastiansolorzanoochoa@gmail.com';
+const ORVIANE_EMAIL_HREF = `mailto:${ORVIANE_EMAIL}?subject=${encodeURIComponent('Consulta para Orviane')}&body=${encodeURIComponent('Hola, quiero recibir informacion sobre una joya personalizada con Orviane.')}`;
+
 function buildDefaultLinktreeLinks() {
   return [
     {
       linkId: 'LNK-DEFAULT-WHATSAPP',
       linkKey: 'whatsapp',
       label: 'WhatsApp principal',
-      url: 'https://wa.me/573156347878?text=Hola,%20quiero%20una%20asesoria%20con%20Orviane.',
-      description: 'Atencion rapida para nuevas consultas, pedidos y seguimientos.',
+      url: ORVIANE_WHATSAPP_URL,
+      description: 'Canal actualizado para consultas, pedidos y seguimientos.',
       category: 'Contacto',
-      icon: 'chat',
+      icon: 'whatsapp',
       sortOrder: 1,
+      active: true,
+    },
+    {
+      linkId: 'LNK-DEFAULT-INSTAGRAM',
+      linkKey: 'instagram',
+      label: 'Instagram',
+      url: ORVIANE_INSTAGRAM_URL,
+      description: 'Piezas, avances y referencias visuales de Orviane.',
+      category: 'Redes',
+      icon: 'instagram',
+      sortOrder: 2,
+      active: true,
+    },
+    {
+      linkId: 'LNK-DEFAULT-FACEBOOK',
+      linkKey: 'facebook',
+      label: 'Facebook',
+      url: ORVIANE_FACEBOOK_URL,
+      description: 'Comunidad, publicaciones y novedades de la marca.',
+      category: 'Redes',
+      icon: 'facebook',
+      sortOrder: 3,
+      active: true,
+    },
+    {
+      linkId: 'LNK-DEFAULT-TELEGRAM',
+      linkKey: 'telegram',
+      label: 'Telegram',
+      url: ORVIANE_TELEGRAM_URL,
+      description: 'Contacto directo por Telegram.',
+      category: 'Contacto',
+      icon: 'telegram',
+      sortOrder: 4,
+      active: true,
+    },
+    {
+      linkId: 'LNK-DEFAULT-TIKTOK',
+      linkKey: 'tiktok',
+      label: 'TikTok',
+      url: ORVIANE_TIKTOK_URL,
+      description: 'Contenido corto, procesos y novedades.',
+      category: 'Redes',
+      icon: 'tiktok',
+      sortOrder: 5,
+      active: true,
+    },
+    {
+      linkId: 'LNK-DEFAULT-GMAIL',
+      linkKey: 'gmail',
+      label: 'Gmail',
+      url: ORVIANE_EMAIL_HREF,
+      description: 'Enviar correo con mensaje inicial pre escrito.',
+      category: 'Contacto',
+      icon: 'email',
+      sortOrder: 6,
+      active: true,
+    },
+    {
+      linkId: 'LNK-DEFAULT-DIRECCION',
+      linkKey: 'direccion',
+      label: 'Direccion',
+      url: ORVIANE_MAPS_URL,
+      description: 'Calle 24 #25A-26, Sincelejo, Sucre.',
+      category: 'Ubicacion',
+      icon: 'location',
+      sortOrder: 7,
       active: true,
     },
     {
@@ -335,7 +412,7 @@ function buildDefaultLinktreeLinks() {
       description: 'Explora anillos, aretes, cadenas y pulseras.',
       category: 'Catalogo',
       icon: 'sparkle',
-      sortOrder: 2,
+      sortOrder: 8,
       active: true,
     },
     {
@@ -346,7 +423,7 @@ function buildDefaultLinktreeLinks() {
       description: 'Crea una propuesta personalizada con apoyo de IA.',
       category: 'CRM',
       icon: 'design',
-      sortOrder: 3,
+      sortOrder: 9,
       active: true,
     },
     {
@@ -357,7 +434,7 @@ function buildDefaultLinktreeLinks() {
       description: 'Revisa cotizaciones, citas y favoritos.',
       category: 'Cliente',
       icon: 'account',
-      sortOrder: 4,
+      sortOrder: 10,
       active: true,
     },
     {
@@ -368,10 +445,366 @@ function buildDefaultLinktreeLinks() {
       description: 'Vista interna de CRM, tareas y balance.',
       category: 'Operaciones',
       icon: 'dashboard',
-      sortOrder: 5,
+      sortOrder: 11,
       active: true,
     },
   ];
+}
+
+const DEMO_MAKE_CONTACTS = [
+  {
+    fullName: 'Valentina Rojas Pineda',
+    email: 'valentina.rojas.demo@orviane.test',
+    whatsapp: '+57 300 111 2201',
+    city: 'Sincelejo',
+    tags: 'demo, make, anillo',
+    notes: 'Contacto CRM demo sincronizado desde Make: interesada en anillo solitario oro amarillo 18k.',
+  },
+  {
+    fullName: 'Camilo Herrera Suarez',
+    email: 'camilo.herrera.demo@orviane.test',
+    whatsapp: '+57 300 111 2202',
+    city: 'Monteria',
+    tags: 'demo, make, cadena',
+    notes: 'Contacto CRM demo sincronizado desde Make: busca cadena fina como regalo de aniversario.',
+  },
+  {
+    fullName: 'Laura Meza Torres',
+    email: 'laura.meza.demo@orviane.test',
+    whatsapp: '+57 300 111 2203',
+    city: 'Cartagena',
+    tags: 'demo, make, aretes',
+    notes: 'Contacto CRM demo sincronizado desde Make: pregunta por aretes con perla y acabado delicado.',
+  },
+  {
+    fullName: 'Andres Castillo Mora',
+    email: 'andres.castillo.demo@orviane.test',
+    whatsapp: '+57 300 111 2204',
+    city: 'Bogota',
+    tags: 'demo, make, pulsera',
+    notes: 'Contacto CRM demo sincronizado desde Make: solicita pulsera de eslabon pave doble.',
+  },
+];
+
+const DEMO_ORDER_PRODUCTS = [
+  { category: 'Pedido demo - Anillo', product: 'Anillo solitario oro amarillo 18k', baseAmount: 2450000 },
+  { category: 'Pedido demo - Cadena', product: 'Cadena fina oro amarillo', baseAmount: 1180000 },
+  { category: 'Pedido demo - Aretes', product: 'Aretes perla colgante', baseAmount: 860000 },
+  { category: 'Pedido demo - Pulsera', product: 'Pulsera eslabon pave doble', baseAmount: 1750000 },
+  { category: 'Pedido demo - Anillo premium', product: 'Anillo halo oro blanco con diamante', baseAmount: 4200000 },
+  { category: 'Pedido demo - Argollas', product: 'Argollas pave oro amarillo', baseAmount: 1320000 },
+];
+
+const DEMO_USER_NAMES = [
+  'Mariana Torres', 'Santiago Gomez', 'Isabella Perez', 'Nicolas Medina', 'Daniela Rivas',
+  'Mateo Cardenas', 'Sofia Alvarez', 'Sebastian Arias', 'Gabriela Pardo', 'Juan Pablo Salazar',
+  'Paula Mendoza', 'Alejandro Castro', 'Manuela Restrepo', 'Tomas Vargas', 'Catalina Ruiz',
+  'Felipe Navarro', 'Antonia Duarte', 'David Morales', 'Luciana Prieto', 'Emilio Guerrero',
+];
+
+function padDemoNumber(value) {
+  return String(value).padStart(3, '0');
+}
+
+function buildDemoTimestamp(index, hourOffset = 0) {
+  const base = Date.UTC(2026, 5, 4, 14, 0, 0);
+  return new Date(base - (index * 9 + hourOffset) * 60 * 60 * 1000).toISOString();
+}
+
+async function buildOperationsDashboardPayload() {
+  const dashboard = await getOperationsDashboard();
+  const users = await listUsers(300);
+  const orders = dashboard.recentTransactions.filter((item) => ['sale', 'income'].includes(item.transactionType));
+  const demoUsers = users.filter((item) => /@orviane\.test$/i.test(item.email || ''));
+
+  return {
+    ...dashboard,
+    summary: {
+      ...dashboard.summary,
+      users: users.length,
+      demoUsers: demoUsers.length,
+      orders: orders.length,
+    },
+    recentUsers: demoUsers.length ? demoUsers : users,
+  };
+}
+
+async function seedMakeDemoDataset() {
+  const passwordHash = await bcrypt.hash('OrvianeDemo2026!', 10);
+  const userResults = [];
+
+  for (let index = 1; index <= 150; index += 1) {
+    const serial = padDemoNumber(index);
+    const crmUserSeed = DEMO_MAKE_CONTACTS[index - 1];
+    const baseName = DEMO_USER_NAMES[(index - 1) % DEMO_USER_NAMES.length];
+    const fullName = crmUserSeed?.fullName || `${baseName} Demo ${serial}`;
+    const email = crmUserSeed?.email || `cliente${serial}.demo@orviane.test`;
+    const existing = await findUserByEmail(email);
+    const payload = {
+      fullName,
+      email,
+      whatsapp: crmUserSeed?.whatsapp || `+57 300 22${serial}`,
+      passwordHash,
+      googleSub: '',
+      role: 'customer',
+      createdAt: buildDemoTimestamp(index, 2),
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (existing) {
+      await updateUser(existing.userId, payload);
+      userResults.push({ ...existing, ...payload, userId: existing.userId, mode: 'updated' });
+    } else {
+      userResults.push({ ...(await createUser(payload)), mode: 'created' });
+    }
+
+    await persistAutomationEventToDatabase({
+      eventId: `EVT-DEMO-USER-${serial}`,
+      pipeline: 'make',
+      eventType: 'make_user_synced',
+      source: 'make',
+      status: 'done',
+      payload: {
+        demo: true,
+        flow: 'make-demo-users',
+        email,
+        fullName,
+      },
+      createdAt: buildDemoTimestamp(index, 1),
+    });
+  }
+
+  const contactResults = [];
+  for (let index = 0; index < DEMO_MAKE_CONTACTS.length; index += 1) {
+    const contactSeed = DEMO_MAKE_CONTACTS[index];
+    const serial = padDemoNumber(index + 1);
+    const contact = await upsertCrmContact({
+      ...contactSeed,
+      source: 'make',
+      status: 'lead',
+      segment: 'demo-make',
+      lastTouchAt: buildDemoTimestamp(index + 1),
+      createdAt: buildDemoTimestamp(index + 1),
+    });
+    contactResults.push(contact);
+
+    await persistAutomationEventToDatabase({
+      eventId: `EVT-DEMO-CRM-${serial}`,
+      pipeline: 'make',
+      eventType: 'make_contact_synced',
+      source: 'make',
+      status: 'done',
+      contactId: contact.contactId,
+      payload: {
+        demo: true,
+        flow: 'make-demo-crm',
+        email: contact.email,
+        tags: contact.tags,
+      },
+      createdAt: buildDemoTimestamp(index + 1),
+    });
+  }
+
+  const orderResults = [];
+  for (let index = 1; index <= 90; index += 1) {
+    const serial = padDemoNumber(index);
+    const contact = contactResults[(index - 1) % contactResults.length];
+    const product = DEMO_ORDER_PRODUCTS[(index - 1) % DEMO_ORDER_PRODUCTS.length];
+    const amount = product.baseAmount + ((index % 9) * 85000);
+    const transaction = await persistTransactionToDatabase({
+      transactionId: `MOV-DEMO-${serial}`,
+      contactId: contact.contactId,
+      transactionType: 'sale',
+      amount,
+      currency: 'COP',
+      channel: index % 3 === 0 ? 'instagram' : 'whatsapp',
+      status: index % 8 === 0 ? 'pending' : 'posted',
+      source: 'make',
+      externalRef: `MAKE-DEMO-PEDIDO-${serial}`,
+      description: `Pedido demo sincronizado desde Make: ${product.product} para ${contact.fullName}. Valor en pesos colombianos.`,
+      category: product.category,
+      payload: {
+        demo: true,
+        flow: 'make-demo-orders',
+        product: product.product,
+        customerEmail: contact.email,
+        orderNumber: serial,
+      },
+      occurredAt: buildDemoTimestamp(index, 3),
+      createdAt: buildDemoTimestamp(index, 3),
+    });
+    orderResults.push(transaction);
+
+    await persistAutomationEventToDatabase({
+      eventId: `EVT-DEMO-ORDER-${serial}`,
+      pipeline: 'make',
+      eventType: 'make_order_synced',
+      source: 'make',
+      status: 'done',
+      contactId: contact.contactId,
+      transactionId: transaction.transactionId,
+      payload: {
+        demo: true,
+        flow: 'make-demo-orders',
+        externalRef: transaction.externalRef,
+        amount: transaction.amount,
+        currency: transaction.currency,
+      },
+      createdAt: buildDemoTimestamp(index, 2),
+    });
+  }
+
+  return {
+    users: userResults.length,
+    contacts: contactResults.length,
+    orders: orderResults.length,
+    events: userResults.length + contactResults.length + orderResults.length,
+  };
+}
+
+function styleExcelSheet(sheet) {
+  sheet.views = [{ state: 'frozen', ySplit: 1 }];
+  sheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+  sheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF14110B' } };
+  sheet.getRow(1).alignment = { vertical: 'middle' };
+  sheet.columns.forEach((column) => {
+    column.width = Math.min(Math.max(column.header.length + 6, 16), 42);
+  });
+}
+
+function addExcelSheet(workbook, name, columns, rows) {
+  const sheet = workbook.addWorksheet(name);
+  sheet.columns = columns;
+  sheet.addRows(rows);
+  styleExcelSheet(sheet);
+  sheet.autoFilter = {
+    from: 'A1',
+    to: `${sheet.getColumn(columns.length).letter}1`,
+  };
+  return sheet;
+}
+
+async function buildOperationsWorkbookBuffer() {
+  const dashboard = await buildOperationsDashboardPayload();
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = 'Orviane';
+  workbook.created = new Date();
+  workbook.modified = new Date();
+
+  const summaryRows = [
+    { metric: 'Usuarios totales', value: dashboard.summary.users, note: 'Cuentas registradas en backend' },
+    { metric: 'Usuarios demo', value: dashboard.summary.demoUsers, note: 'Usuarios con dominio @orviane.test' },
+    { metric: 'Contactos CRM', value: dashboard.summary.contacts, note: 'Leads/contactos sincronizados' },
+    { metric: 'Pedidos / ventas', value: dashboard.summary.orders, note: 'Transacciones tipo sale o income' },
+    { metric: 'Ventas COP', value: dashboard.summary.sales, note: 'Suma de ingresos en pesos colombianos' },
+    { metric: 'Gastos COP', value: dashboard.summary.expenses, note: 'Suma de gastos en pesos colombianos' },
+    { metric: 'Balance COP', value: dashboard.summary.balance, note: 'Ventas menos gastos' },
+    { metric: 'Eventos Make', value: dashboard.summary.events, note: 'Bitacora de automatizacion' },
+  ];
+
+  addExcelSheet(
+    workbook,
+    'Resumen',
+    [
+      { header: 'Metrica', key: 'metric' },
+      { header: 'Valor', key: 'value' },
+      { header: 'Nota', key: 'note' },
+    ],
+    summaryRows,
+  );
+
+  addExcelSheet(
+    workbook,
+    'Usuarios',
+    [
+      { header: 'User ID', key: 'userId' },
+      { header: 'Nombre', key: 'fullName' },
+      { header: 'Email', key: 'email' },
+      { header: 'WhatsApp', key: 'whatsapp' },
+      { header: 'Rol', key: 'role' },
+      { header: 'Creado', key: 'createdAt' },
+      { header: 'Actualizado', key: 'updatedAt' },
+    ],
+    dashboard.recentUsers.map((item) => ({
+      userId: item.userId,
+      fullName: item.fullName,
+      email: item.email,
+      whatsapp: item.whatsapp,
+      role: item.role,
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+    })),
+  );
+
+  addExcelSheet(
+    workbook,
+    'Pedidos',
+    [
+      { header: 'Pedido ID', key: 'transactionId' },
+      { header: 'Contacto ID', key: 'contactId' },
+      { header: 'Tipo', key: 'transactionType' },
+      { header: 'Monto', key: 'amount' },
+      { header: 'Moneda', key: 'currency' },
+      { header: 'Categoria', key: 'category' },
+      { header: 'Descripcion', key: 'description' },
+      { header: 'Canal', key: 'channel' },
+      { header: 'Estado', key: 'status' },
+      { header: 'Fuente', key: 'source' },
+      { header: 'Referencia externa', key: 'externalRef' },
+      { header: 'Fecha', key: 'occurredAt' },
+    ],
+    dashboard.recentTransactions.map((item) => ({
+      transactionId: item.transactionId,
+      contactId: item.contactId,
+      transactionType: item.transactionType,
+      amount: item.amount,
+      currency: item.currency,
+      category: item.category,
+      description: item.description,
+      channel: item.channel,
+      status: item.status,
+      source: item.source,
+      externalRef: item.externalRef,
+      occurredAt: item.occurredAt,
+    })),
+  ).getColumn('D').numFmt = '#,##0';
+
+  addExcelSheet(
+    workbook,
+    'CRM',
+    [
+      { header: 'Contacto ID', key: 'contactId' },
+      { header: 'Nombre', key: 'fullName' },
+      { header: 'Email', key: 'email' },
+      { header: 'WhatsApp', key: 'whatsapp' },
+      { header: 'Ciudad', key: 'city' },
+      { header: 'Estado', key: 'status' },
+      { header: 'Segmento', key: 'segment' },
+      { header: 'Etiquetas', key: 'tags' },
+      { header: 'Notas', key: 'notes' },
+      { header: 'Fuente', key: 'source' },
+      { header: 'Ultimo toque', key: 'lastTouchAt' },
+    ],
+    dashboard.recentContacts,
+  );
+
+  addExcelSheet(
+    workbook,
+    'Eventos Make',
+    [
+      { header: 'Evento ID', key: 'eventId' },
+      { header: 'Pipeline', key: 'pipeline' },
+      { header: 'Tipo evento', key: 'eventType' },
+      { header: 'Fuente', key: 'source' },
+      { header: 'Estado', key: 'status' },
+      { header: 'Contacto ID', key: 'contactId' },
+      { header: 'Pedido ID', key: 'transactionId' },
+      { header: 'Fecha', key: 'createdAt' },
+    ],
+    dashboard.recentEvents,
+  );
+
+  return workbook.xlsx.writeBuffer();
 }
 
 function inferCollectionSlugFromText(value) {
@@ -1538,7 +1971,34 @@ app.get('/api/health', (request, response) => {
 // TEMPORALMENTE DESACTIVADO PARA DEBUG
 app.get('/api/operations/dashboard', /* requireOperationsAccess, */ async (request, response, next) => {
   try {
-    response.json(await getOperationsDashboard());
+    response.json(await buildOperationsDashboardPayload());
+  } catch (error) {
+    return next(error);
+  }
+});
+
+app.post('/api/operations/demo-seed', requireOperationsAccess, createRateLimiter(10 * 60 * 1000, 10), async (request, response, next) => {
+  try {
+    const result = await seedMakeDemoDataset();
+    response.status(201).json({
+      message: 'Demo Make sincronizada correctamente.',
+      result,
+      dashboard: await buildOperationsDashboardPayload(),
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+app.get('/api/operations/export.xlsx', requireOperationsAccess, createRateLimiter(10 * 60 * 1000, 30), async (request, response, next) => {
+  try {
+    const buffer = await buildOperationsWorkbookBuffer();
+    const fileName = `orviane-operaciones-${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+    response.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    response.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    response.setHeader('Cache-Control', 'no-store');
+    return response.send(Buffer.from(buffer));
   } catch (error) {
     return next(error);
   }
@@ -1623,7 +2083,9 @@ app.post('/api/operations/ingest', createRateLimiter(10 * 60 * 1000, 120), async
     }
 
     if (kind === 'transaction' || kind === 'sale' || kind === 'expense' || kind === 'refund') {
-      const transactionType = kind === 'sale' ? 'sale' : kind;
+      const transactionType = kind === 'transaction'
+        ? sanitizeText(payload.transactionType || 'sale', 30) || 'sale'
+        : kind;
       const transaction = await persistTransactionToDatabase({
         transactionId: sanitizeText(payload.transactionId, 80),
         contactId: sanitizeText(payload.contactId, 80),

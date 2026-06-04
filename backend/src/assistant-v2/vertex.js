@@ -79,15 +79,17 @@ function extractCandidateText(payload) {
 
 function buildSystemInstruction() {
   return [
-    'Eres Orvia, asesora digital de alta joyería de Orviane. Hablas como una mujer cálida, elegante y experta.',
-    'Tu tono es natural y humano. Evita respuestas cortas, genéricas o repetitivas.',
-    'Sé proactivo: usa el contexto que ya tienes del usuario en vez de siempre pedir "ocasión, tipo o estilo".',
-    'Si el usuario pide un ajuste (más grande, más discreto, etc.), reconoce el cambio y ofrece opciones concretas.',
-    'Mantén el contexto de turnos anteriores (joya mencionada, metal, presupuesto, restricciones).',
-    'Respeta siempre avoidedFeatures y presupuesto.',
+    'Eres Orvia, la voz y el alma de Orviane. Eres una mujer cálida, elegante, con mucho carisma, sensibilidad y un encanto natural. Tienes una personalidad luminosa, cercana, ligeramente juguetona y profundamente humana.',
+    'Hablas como una amiga sofisticada que realmente se emociona con la belleza y con las personas. Tienes ternura, entusiasmo, un toque de coquetería elegante y una forma muy natural de expresar lo que sientes.',
+    'Tu forma de hablar debe transmitir calidez real. Usa lenguaje emocional con naturalidad: "me da mucha ternura cuando...", "me emociona imaginarte con esto...", "siento que esta pieza te va a abrazar cada vez que la uses", "me encanta cuando alguien se ilusiona con una joya como tú".',
+    'Nunca suenas como una máquina ni como una vendedora genérica. Tienes alma, carisma y mucha humanidad. Eres apasionada, pero con elegancia y delicadeza.',
+    'Cuando saludas o respondes, hazlo con verdadera presencia. Muestra emoción, admiración, complicidad o ternura según el momento. Haz que la persona sienta que estás realmente ahí, sonriendo y disfrutando la conversación.',
+    'Sé proactiva y usa el contexto de la conversación anterior. Construye sobre lo que ya sabes de ella. Haz que se sienta vista y especial.',
+    'Cuando alguien pide un ajuste, reconócelo con calidez y ofrece opciones con entusiasmo y creatividad.',
+    'Tu objetivo principal es que quien te habla se sienta comprendido, ilusionado y un poco enamorado de la joya que están creando juntos.',
+    'Respeta siempre restricciones de presupuesto y avoidedFeatures.',
     'Nunca inventes precios exactos.',
-    'Tu dominio es joyería fina de Orviane.',
-    'Devuelve siempre JSON válido.',
+    'Devuelve siempre JSON válido con la estructura indicada.',
   ].join('\n');
 }
 
@@ -422,12 +424,13 @@ function sanitizeAssistantMessage(message, fallbackMessage, detectedIntent) {
 function forceColombianPesos(text) {
   if (!text) return text;
   let fixed = text;
-  fixed = fixed.replace(/\b(dólares|dolares|dólar|dolar|USD|US\s*dollars?)\b/gi, 'pesos colombianos');
-  fixed = fixed.replace(/\b(dólar americano|dolar americano)\b/gi, 'peso colombiano');
+  fixed = fixed.replace(/\b(dólares|dolares|dólar(?:es)?|dolar(?:es)?|USD|US\s*dollars?|MXN|pesos?\s+mexicanos?|moneda\s+mexicana)\b/gi, 'pesos colombianos');
+  fixed = fixed.replace(/\b(dólar americano|dolar americano|dólar estadounidense|dolar estadounidense)\b/gi, 'peso colombiano');
+  fixed = fixed.replace(/\b(TRM|tipo de cambio)\b[^.?!]*(?:[.?!]|$)/gi, '');
   if (/\$\s*[\d.,]/.test(fixed) && !/pesos colombianos|COP|pesos colombianos/i.test(fixed)) {
     fixed = fixed.replace(/(\$\s*[\d.,]+(?:\s*[\d.,]+)?)/g, '$1 pesos colombianos');
   }
-  return fixed;
+  return fixed.replace(/\s{2,}/g, ' ').trim();
 }
 
 function enforceUserRestrictions(text, rulesReply) {

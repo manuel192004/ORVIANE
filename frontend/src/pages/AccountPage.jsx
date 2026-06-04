@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
+import { ORVIANE_CONTACT } from '../data/contactChannels';
 import '../styles/_accountpage.scss';
 import OrvianeConversionSection from '../components/common/OrvianeConversionSection';
 import PageMeta from '../components/common/PageMeta';
@@ -111,8 +112,8 @@ function getAppointmentStatusMeta(status) {
   return { label: 'Pendiente de confirmar', tone: 'warning' };
 }
 
-function buildWhatsappHref(message) {
-  return `https://wa.me/573156347878?text=${encodeURIComponent(message)}`;
+function buildWhatsappHref() {
+  return ORVIANE_CONTACT.whatsappUrl;
 }
 
 function StatCard({ value, label }) {
@@ -554,7 +555,7 @@ const AccountPage = () => {
             highlights={['Cuenta para guardar favoritos', 'Cita para orientar la decision', 'WhatsApp directo si prefieres rapidez']}
             primaryAction={{
               label: 'Hablar por WhatsApp',
-              href: 'https://wa.me/573156347878?text=Hola,%20quiero%20una%20asesoria%20con%20Orviane.',
+              href: ORVIANE_CONTACT.whatsappUrl,
               external: true,
             }}
             secondaryAction={{ label: 'Ver colecciones', to: '/colecciones' }}

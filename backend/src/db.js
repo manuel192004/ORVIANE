@@ -420,6 +420,24 @@ async function findUserByIdInDatabase(userId) {
   return mapUserRow(rows[0]);
 }
 
+async function listUsersInDatabase(limit = 200) {
+  if (!databaseReady) {
+    return [];
+  }
+
+  const { rows } = await getPool().query(
+    `
+      SELECT user_id, full_name, email, whatsapp, password_hash, google_sub, role, created_at, updated_at
+      FROM users
+      ORDER BY created_at DESC
+      LIMIT $1
+    `,
+    [Number(limit)],
+  );
+
+  return rows.map(mapUserRow);
+}
+
 async function upsertUserInDatabase(record) {
   if (!databaseReady) {
     return null;
@@ -1813,10 +1831,10 @@ async function listLinktreeLinks(activeOnly = true) {
 async function getOperationsDashboard() {
   if (!databaseReady) {
     const [contacts, transactions, tasks, events, links] = await Promise.all([
-      listCrmContacts(6),
-      listCrmTransactions(8),
-      listCrmTasks(8),
-      listAutomationEvents(8),
+      listCrmContacts(200),
+      listCrmTransactions(200),
+      listCrmTasks(100),
+      listAutomationEvents(300),
       listLinktreeLinks(true),
     ]);
 
@@ -1885,10 +1903,10 @@ async function getOperationsDashboard() {
     getPool().query('SELECT COUNT(*)::int AS count FROM crm_tasks'),
     getPool().query("SELECT COUNT(*)::int AS count FROM crm_tasks WHERE status <> 'done' AND due_date IS NOT NULL AND due_date < CURRENT_DATE"),
     getPool().query('SELECT COUNT(*)::int AS count FROM automation_events'),
-    listCrmContacts(6),
-    listCrmTransactions(8),
-    listCrmTasks(8),
-    listAutomationEvents(8),
+    listCrmContacts(200),
+    listCrmTransactions(200),
+    listCrmTasks(100),
+    listAutomationEvents(300),
     listLinktreeLinks(true),
   ]);
 
@@ -1918,6 +1936,7 @@ module.exports = {
   findUserByEmailInDatabase,
   findUserByGoogleSubInDatabase,
   findUserByIdInDatabase,
+  listUsersInDatabase,
   upsertUserInDatabase,
   persistRegistrationToDatabase,
   persistGenerationToDatabase,

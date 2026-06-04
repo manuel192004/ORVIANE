@@ -4,6 +4,7 @@ import './../styles/_configuratorpage.scss';
 import PromptDesigner from '../components/configurator/PromptDesigner';
 import OrvianeConversionSection from '../components/common/OrvianeConversionSection';
 import PageMeta from '../components/common/PageMeta';
+import { ORVIANE_CONTACT } from '../data/contactChannels';
 
 const ConfiguratorPage = () => {
   const location = useLocation();
@@ -92,7 +93,7 @@ const ConfiguratorPage = () => {
           highlights={['Brief mas claro', 'Cotizacion con contexto', 'Paso natural de render a asesoria']}
           primaryAction={{
             label: 'Hablar por WhatsApp',
-            href: 'https://wa.me/573156347878?text=Hola,%20quiero%20asesoria%20sobre%20una%20joya%20personalizada.',
+            href: ORVIANE_CONTACT.whatsappUrl,
             external: true,
           }}
           secondaryAction={{ label: 'Ver colecciones', to: '/colecciones' }}

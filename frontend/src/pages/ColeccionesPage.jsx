@@ -5,6 +5,7 @@ import { apiFetch } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import OrvianeConversionSection from '../components/common/OrvianeConversionSection';
 import PageMeta from '../components/common/PageMeta';
+import { ORVIANE_CONTACT } from '../data/contactChannels';
 import {
   buildProductQuoteMessage,
   collectionOrder,
@@ -16,12 +17,9 @@ import {
   getRelatedItems,
 } from '../lib/catalog';
 
-const WHATSAPP_LINK = 'https://wa.me/qr/JXM3LVGEI75HC1';
-const WHATSAPP_PHONE = '573156347878';
+const WHATSAPP_LINK = ORVIANE_CONTACT.whatsappUrl;
 
-const createWhatsAppHref = (message) => `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(message)}`;
-
-const buildProductWhatsappHref = (collection, item) => createWhatsAppHref(buildProductQuoteMessage(collection, item));
+const buildProductWhatsappHref = () => WHATSAPP_LINK;
 
 const brandPromises = [
   {

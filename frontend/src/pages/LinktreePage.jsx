@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
+import ContactIcon from '../components/common/ContactIcon';
 import PageMeta from '../components/common/PageMeta';
+import { ORVIANE_CONTACT } from '../data/contactChannels';
 import { apiFetch } from '../lib/api';
 import '../styles/_operationspage.scss';
 
@@ -57,8 +59,13 @@ function LinktreePage() {
                   target={link.url.startsWith('http') ? '_blank' : '_self'}
                   rel={link.url.startsWith('http') ? 'noreferrer' : undefined}
                 >
-                  <strong>{link.label}</strong>
-                  <span>{link.description || link.category || 'Acceso rapido'}</span>
+                  <span className="linktree-action-icon">
+                    <ContactIcon name={link.icon || link.linkKey} />
+                  </span>
+                  <span className="linktree-action-copy">
+                    <strong>{link.label}</strong>
+                    <span>{link.description || link.category || 'Acceso rapido'}</span>
+                  </span>
                 </a>
               ))
             ) : (
@@ -67,7 +74,7 @@ function LinktreePage() {
           </div>
 
           <div className="linktree-footer">
-            <a href="https://wa.me/573156347878?text=Hola,%20quiero%20una%20asesoria%20con%20Orviane." target="_blank" rel="noreferrer">
+            <a href={ORVIANE_CONTACT.whatsappUrl} target="_blank" rel="noreferrer">
               WhatsApp directo
             </a>
           </div>
