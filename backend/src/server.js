@@ -126,6 +126,10 @@ const OPENAI_ASSISTANT_MODEL = sanitizeText(process.env.OPENAI_ASSISTANT_MODEL, 
 const OPENAI_REALTIME_MODEL = sanitizeText(process.env.OPENAI_REALTIME_MODEL, 120) || 'gpt-realtime';
 const OPENAI_REALTIME_VOICE = sanitizeText(process.env.OPENAI_REALTIME_VOICE, 40) || 'marin';
 const OPENAI_TRANSCRIPTION_MODEL = sanitizeText(process.env.OPENAI_TRANSCRIPTION_MODEL, 120) || 'gpt-4o-mini-transcribe';
+const MAKE_APPOINTMENT_WEBHOOK_URL = sanitizeText(
+  process.env.MAKE_APPOINTMENT_WEBHOOK_URL || process.env.MAKE_WEBHOOK_URL,
+  500,
+);
 const GOOGLE_APPLICATION_CREDENTIALS = sanitizeText(resolveGoogleApplicationCredentials(), 400);
 const AUTH_JWT_SECRET = sanitizeText(process.env.AUTH_JWT_SECRET, 200) || 'orviane-local-dev-secret';
 const GOOGLE_CLIENT_ID = sanitizeText(process.env.GOOGLE_CLIENT_ID, 200);
@@ -1891,6 +1895,98 @@ async function persistAppointment(record) {
   await fs.promises.appendFile(APPOINTMENTS_FILE, `${JSON.stringify(record)}\n`, 'utf8');
 }
 
+function buildAppointmentMakePayload(record) {
+  const description = [
+    record.reason ? `Motivo: ${record.reason}` : '',
+    record.preferredDate || record.preferredSlot
+      ? `Preferencia: ${[record.preferredDate, record.preferredSlot].filter(Boolean).join(' / ')}`
+      : '',
+    record.notes ? `Notas: ${record.notes}` : '',
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  return {
+    eventType: 'appointment_request',
+    submittedAt: record.createdAt,
+    appointment: {
+      appointmentId: record.appointmentId,
+      clientName: record.clientName,
+      email: record.email,
+      whatsapp: record.whatsapp,
+      preferredDate: record.preferredDate,
+      preferredSlot: record.preferredSlot,
+      reason: record.reason,
+      notes: record.notes,
+      source: record.source,
+      status: record.status,
+    },
+    excelRow: {
+      ID_Registro: record.appointmentId,
+      Fecha_Carga: record.createdAt,
+      Fuente: record.source || 'Formulario web',
+      Nombre: record.clientName,
+      Correo: record.email,
+      Telefono: record.whatsapp,
+      Ciudad: '',
+      Tipo_Solicitud: 'Cita / asesoria',
+      Producto_Coleccion: '',
+      Descripcion: description || record.reason,
+      Archivo_URL: '',
+      Prioridad: 'Media',
+      Estado: 'Nuevo',
+      Responsable: 'Comunicaciones',
+      Trello_Card_ID: '',
+      Trello_Card_URL: '',
+      Linktree_URL: '',
+      Fecha_Limite: record.preferredDate,
+      Fecha_Cierre: '',
+      Make_Escenario: 'Formulario web Orviane',
+      Make_Run_ID: '',
+      Make_Estado: 'Recibido',
+      Observaciones: `Horario preferido: ${record.preferredSlot}`,
+    },
+  };
+}
+
+async function forwardAppointmentToMake(record) {
+  if (!MAKE_APPOINTMENT_WEBHOOK_URL) {
+    return { status: 'skipped' };
+  }
+
+  if (typeof fetch !== 'function') {
+    console.warn('[make-webhook] Fetch no esta disponible en este runtime de Node.');
+    return { status: 'failed', error: 'fetch_unavailable' };
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+
+  try {
+    const makeResponse = await fetch(MAKE_APPOINTMENT_WEBHOOK_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(buildAppointmentMakePayload(record)),
+      signal: controller.signal,
+    });
+
+    const responseText = await makeResponse.text().catch(() => '');
+
+    if (!makeResponse.ok) {
+      throw new Error(`Make respondio ${makeResponse.status}: ${responseText.slice(0, 160)}`);
+    }
+
+    return { status: 'sent', statusCode: makeResponse.status };
+  } catch (error) {
+    console.warn('[make-webhook] No se pudo enviar la cita a Make.', error.message);
+    return { status: 'failed', error: error.name === 'AbortError' ? 'timeout' : error.message };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 app.use((request, response, next) => {
   response.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   response.setHeader('X-Content-Type-Options', 'nosniff');
@@ -1952,6 +2048,7 @@ app.get('/api/health', (request, response) => {
     operationsReady: true,
     operationsStorageMode: databaseStatus.ready ? 'postgresql' : 'ndjson-fallback',
     operationsAccessProtected: Boolean(OPERATIONS_ACCESS_TOKEN),
+    makeAppointmentWebhookConfigured: Boolean(MAKE_APPOINTMENT_WEBHOOK_URL),
     imageGenerationReady: isImageGenerationConfigured(),
     assistantV2Ready: true,
     assistantV2AiConfigured: isAssistantV2Configured(),
@@ -2807,17 +2904,20 @@ app.post('/api/appointments', createRateLimiter(30 * 60 * 1000, 20), async (requ
     const payload = validateAppointmentPayload(request.body);
     const appointmentId = buildAppointmentId();
     const createdAt = new Date().toISOString();
-
-    await persistAppointment({
+    const record = {
       appointmentId,
       createdAt,
       ...payload,
       status: 'pending',
       sourceIp: getClientIp(request),
-    });
+    };
+
+    await persistAppointment(record);
+    const makeDelivery = await forwardAppointmentToMake(record);
 
     return response.status(201).json({
       appointmentId,
+      makeSync: makeDelivery.status,
       message: 'Tu solicitud de cita quedo registrada. Te contactaremos para confirmar el horario.',
     });
   } catch (error) {

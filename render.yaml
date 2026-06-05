@@ -28,6 +28,8 @@ services:
         value: Administrador Orviane
       - key: OPERATIONS_ADMIN_SEED_WHATSAPP
         sync: false
+      - key: MAKE_APPOINTMENT_WEBHOOK_URL
+        sync: false
       - key: USERS_DUAL_WRITE_FILE
         value: false
       - key: USERS_FILE_FALLBACK_READS
