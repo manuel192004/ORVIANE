@@ -47,14 +47,9 @@ const Header = () => {
           <Link to="/cuenta" className="header-account-link" title={accountLabel}>
             {accountLabel}
           </Link>
-          <a
-            href={ORVIANE_CONTACT.whatsappUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="header-ghost-cta"
-          >
+          <Link to="/agendar-cita" className="header-ghost-cta">
             Agenda Cita
-          </a>
+          </Link>
           <Link to="/configurador" className="header-cta">
             Disena Tu Joya
           </Link>
@@ -83,15 +78,9 @@ const Header = () => {
             <Link to="/orviane" className="nav-link" onClick={closeMenu}>La Casa</Link>
             <Link to="/colecciones" className="nav-link" onClick={closeMenu}>Colecciones</Link>
             <Link to="/cuenta" className="nav-link special-link" onClick={closeMenu}>{accountLabel}</Link>
-            <a
-              href={ORVIANE_CONTACT.whatsappUrl}
-              className="nav-link special-link"
-              target="_blank"
-              rel="noreferrer"
-              onClick={closeMenu}
-            >
+            <Link to="/agendar-cita" className="nav-link special-link" onClick={closeMenu}>
               Agenda Cita
-            </a>
+            </Link>
             <Link to="/configurador" className="nav-link special-link" onClick={closeMenu}>
               Disena Tu Joya
             </Link>

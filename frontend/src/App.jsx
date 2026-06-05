@@ -9,6 +9,7 @@ import ColeccionesPage from './pages/ColeccionesPage';
 import AccountPage from './pages/AccountPage';
 import OperationsPage from './pages/OperationsPage';
 import LinktreePage from './pages/LinktreePage';
+import AppointmentPage from './pages/AppointmentPage';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
             <Route path="/colecciones" element={<ColeccionesPage />} />
             <Route path="/colecciones/:categoria" element={<ColeccionesPage />} />
             <Route path="/cuenta" element={<AccountPage />} />
+            <Route path="/agendar-cita" element={<AppointmentPage />} />
             <Route path="/operaciones" element={<OperationsPage />} />
             <Route path="/linktree" element={<LinktreePage />} />
           </Routes>

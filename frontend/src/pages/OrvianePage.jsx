@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import '../styles/_orvianepage.scss';
 import OrvianeConversionSection from '../components/common/OrvianeConversionSection';
 import PageMeta from '../components/common/PageMeta';
-import { ORVIANE_CONTACT } from '../data/contactChannels';
 
 const OrvianePage = () => {
   return (
@@ -96,9 +95,8 @@ const OrvianePage = () => {
           highlights={['Asesoria para piezas simbolicas', 'Lectura de materiales y acabados', 'Seguimiento humano de Orviane']}
           primaryAction={{ label: 'Ir al configurador', to: '/configurador' }}
           secondaryAction={{
-            label: 'Agendar por WhatsApp',
-            href: ORVIANE_CONTACT.whatsappUrl,
-            external: true,
+            label: 'Agendar cita',
+            to: '/agendar-cita',
           }}
           formTitle="Pide una cita para hablar tu idea"
           formCopy="Deja tu preferencia y retomamos contigo con una conversacion mas enfocada en ocasion, estilo y viabilidad real."

@@ -19,9 +19,9 @@ const HeroSection = () => {
           <Link to="/configurador" className="hero-button">
             Crear una pieza
           </Link>
-          <a href="#contacto-home" className="hero-button hero-button-secondary">
+          <Link to="/agendar-cita" className="hero-button hero-button-secondary">
             Agendar asesoria
-          </a>
+          </Link>
         </div>
         <div className="hero-route-strip" aria-label="Rutas principales">
           <Link to="/colecciones">
@@ -32,10 +32,10 @@ const HeroSection = () => {
             <span>02</span>
             <strong>Personalizar con brief visual</strong>
           </Link>
-          <a href="#contacto-home">
+          <Link to="/agendar-cita">
             <span>03</span>
             <strong>Resolver por WhatsApp o cita</strong>
-          </a>
+          </Link>
         </div>
       </div>
     </section>

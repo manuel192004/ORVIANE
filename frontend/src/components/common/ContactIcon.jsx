@@ -58,6 +58,17 @@ const iconPaths = {
       <path d="m14 7 3 3" />
     </>
   ),
+  calendar: (
+    <>
+      <rect x="4" y="5" width="16" height="15" rx="2" />
+      <path d="M8 3v4" />
+      <path d="M16 3v4" />
+      <path d="M4 10h16" />
+      <path d="M8 14h.01" />
+      <path d="M12 14h.01" />
+      <path d="M16 14h.01" />
+    </>
+  ),
   account: (
     <>
       <circle cx="12" cy="8" r="4" />

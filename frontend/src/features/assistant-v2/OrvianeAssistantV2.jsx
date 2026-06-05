@@ -17,6 +17,7 @@ const starterReplies = [
   { label: 'Busco un anillo', message: 'Busco un anillo para compromiso' },
   { label: 'Quiero un regalo', message: 'Quiero una joya para regalo especial' },
   { label: 'Diseño a medida', message: 'Quiero una joya personalizada' },
+  { label: 'Agendar cita', message: 'Quiero agendar una cita' },
 ];
 
 const defaultWelcomeText = 'Hola, soy Orvia. Te ayudo a elegir colección, pieza, configurador o cita sin enredarte.';
@@ -409,7 +410,7 @@ function getActionCopy(action) {
   }
 
   if (action.type === 'open_appointment') {
-    return 'Pasa a una cita corta para aterrizar materiales, tiempos y presupuesto.';
+    return 'Abre el formulario de cita para que la solicitud quede registrada en seguimiento.';
   }
 
   if (action.type === 'open_whatsapp') {
@@ -427,7 +428,7 @@ function getActionButtonLabel(action) {
   if (action.type === 'open_collection') return 'Abrir colección';
   if (action.type === 'open_product') return 'Ver pieza';
   if (action.type === 'open_configurator') return 'Abrir configurador';
-  if (action.type === 'open_appointment') return 'Ir a cita';
+  if (action.type === 'open_appointment') return 'Abrir formulario';
   if (action.type === 'open_whatsapp') return 'Abrir WhatsApp';
   return 'Continuar';
 }
@@ -443,7 +444,8 @@ function buildGuestFallbackReply(message) {
     /(regalo|regalar|cumpleanos|aniversario|sorpresa|dia de la madre|dia de las madres|madre|mama|mamá)/.test(normalized);
   const isRingIntent = /(anillo|compromiso|sortija|aro)/.test(normalized);
   const isCustomIntent = /(personaliz|a medida|configurador|disen)/.test(normalized);
-  const isAppointmentIntent = /(cita|agendar|asesoria|whatsapp)/.test(normalized);
+  const isAppointmentIntent = /(cita|agendar|asesoria)/.test(normalized);
+  const isWhatsappIntent = /(whatsapp|wasap|wsp)/.test(normalized);
   const isMothersDayIntent = /(dia de la madre|dia de las madres|madre|mama|mamá)/.test(normalized);
 
   if (/^(hola|buenas|buenos dias|buen dia|buenas tardes|buenas noches|hey|hello)\b/.test(normalized)) {
@@ -527,13 +529,38 @@ function buildGuestFallbackReply(message) {
   if (isAppointmentIntent) {
     return {
       assistantMessage:
-        'Claro. Podemos seguir por cita o por WhatsApp. Si quieres, te llevo al siguiente paso.',
+        'Claro. Te llevo al formulario de cita para que la solicitud quede registrada y el equipo pueda hacer seguimiento.',
       quickReplies: [
         { label: 'Agendar cita', message: 'Quiero agendar una cita' },
         { label: 'Hablar por WhatsApp', message: 'Quiero hablar por WhatsApp' },
         { label: 'Seguir viendo', message: 'Prefiero seguir viendo opciones' },
       ],
-      suggestedAction: null,
+      suggestedAction: {
+        type: 'open_appointment',
+        label: 'Abrir formulario de cita',
+        reason: 'Asesoria solicitada desde Orvia',
+        notes: 'El cliente pidio agendar una cita desde el asistente.',
+      },
+      guidanceCard: null,
+      diagnostics: emptyDiagnostics,
+      memory: createMemory(),
+    };
+  }
+
+  if (isWhatsappIntent) {
+    return {
+      assistantMessage:
+        'Claro. Puedes continuar por WhatsApp directo y conservar el contexto de lo que estas buscando.',
+      quickReplies: [
+        { label: 'Abrir WhatsApp', message: 'Quiero hablar por WhatsApp' },
+        { label: 'Agendar cita', message: 'Quiero agendar una cita' },
+        { label: 'Ver colecciones', message: 'Quiero ver colecciones' },
+      ],
+      suggestedAction: {
+        type: 'open_whatsapp',
+        label: 'Abrir WhatsApp',
+        reason: 'Continuar con una asesora humana.',
+      },
       guidanceCard: null,
       diagnostics: emptyDiagnostics,
       memory: createMemory(),
@@ -1357,12 +1384,15 @@ const OrvianeAssistantV2 = () => {
     }
 
     if (action.type === 'open_appointment') {
-      setAppointmentForm((current) => ({
-        ...current,
-        reason: action.reason || current.reason,
-        notes: action.notes || current.notes,
-      }));
-      setMode('appointment');
+      navigate('/agendar-cita', {
+        state: {
+          defaultReason: action.reason || 'Asesoria solicitada desde Orvia',
+          defaultNotes: action.notes || '',
+          source: 'assistant-v2-widget',
+        },
+      });
+      setPendingAction(null);
+      closeAssistant();
       return;
     }
 

@@ -18,8 +18,8 @@ const clientRoutes = [
   {
     title: 'Resolver con asesoria',
     copy: 'Para regalos importantes, compromiso o dudas de presupuesto, conviene una guia directa.',
-    ctaLabel: 'Agendar por WhatsApp',
-    href: ORVIANE_CONTACT.whatsappUrl,
+    ctaLabel: 'Agendar cita',
+    to: '/agendar-cita',
   },
 ];
 
@@ -290,20 +290,20 @@ const HomeCommercialSections = () => {
           </div>
 
           <div className="home-contact-actions">
+            <Link to="/agendar-cita" className="home-primary-cta">
+              Agendar cita
+            </Link>
+            <Link to="/colecciones" className="home-secondary-cta">
+              Ver Catalogo
+            </Link>
             <a
               href={ORVIANE_CONTACT.whatsappUrl}
               target="_blank"
               rel="noreferrer"
-              className="home-primary-cta"
+              className="home-secondary-cta"
             >
-              Escribir por WhatsApp
+              WhatsApp directo
             </a>
-            <Link to="/colecciones" className="home-secondary-cta">
-              Ver Catalogo
-            </Link>
-            <Link to="/configurador" className="home-secondary-cta">
-              Ir al Configurador
-            </Link>
           </div>
         </div>
       </section>

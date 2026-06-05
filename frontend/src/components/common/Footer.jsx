@@ -49,12 +49,12 @@ const Footer = () => {
           </p>
           <p><strong>Horario:</strong> Lunes a sabado, 9:00 a.m. a 6:00 p.m.</p>
           <div className="footer-cta-group">
-            <a href={ORVIANE_CONTACT.whatsappUrl} target="_blank" rel="noopener noreferrer" className="footer-cta-link">
-              Agendar por WhatsApp
-            </a>
-            <Link to="/configurador" className="footer-cta-link footer-cta-link-secondary">
-              Personalizar una joya
+            <Link to="/agendar-cita" className="footer-cta-link">
+              Agendar cita
             </Link>
+            <a href={ORVIANE_CONTACT.whatsappUrl} target="_blank" rel="noopener noreferrer" className="footer-cta-link footer-cta-link-secondary">
+              WhatsApp directo
+            </a>
           </div>
         </div>
       </div>

@@ -420,6 +420,17 @@ function buildDefaultLinktreeLinks() {
       active: true,
     },
     {
+      linkId: 'LNK-DEFAULT-CITA',
+      linkKey: 'cita',
+      label: 'Agendar cita',
+      url: '/agendar-cita',
+      description: 'Formulario conectado a seguimiento comercial.',
+      category: 'Contacto',
+      icon: 'calendar',
+      sortOrder: 9,
+      active: true,
+    },
+    {
       linkId: 'LNK-DEFAULT-CONFIGURADOR',
       linkKey: 'configurador',
       label: 'Disenar una joya',
@@ -427,7 +438,7 @@ function buildDefaultLinktreeLinks() {
       description: 'Crea una propuesta personalizada con apoyo de IA.',
       category: 'CRM',
       icon: 'design',
-      sortOrder: 9,
+      sortOrder: 10,
       active: true,
     },
     {
@@ -438,7 +449,7 @@ function buildDefaultLinktreeLinks() {
       description: 'Revisa cotizaciones, citas y favoritos.',
       category: 'Cliente',
       icon: 'account',
-      sortOrder: 10,
+      sortOrder: 11,
       active: true,
     },
     {
@@ -449,7 +460,7 @@ function buildDefaultLinktreeLinks() {
       description: 'Vista interna de CRM, tareas y balance.',
       category: 'Operaciones',
       icon: 'dashboard',
-      sortOrder: 11,
+      sortOrder: 12,
       active: true,
     },
   ];

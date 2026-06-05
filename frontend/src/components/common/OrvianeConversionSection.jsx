@@ -21,7 +21,7 @@ function buildToday() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function buildInitialForm(user, defaultReason, source) {
+function buildInitialForm(user, defaultReason, source, defaultNotes = '') {
   return {
     clientName: user?.fullName || '',
     email: user?.email || '',
@@ -29,7 +29,7 @@ function buildInitialForm(user, defaultReason, source) {
     preferredDate: buildToday(),
     preferredSlot: defaultSlots[1],
     reason: defaultReason,
-    notes: '',
+    notes: defaultNotes,
     source,
   };
 }
@@ -66,11 +66,12 @@ const OrvianeConversionSection = ({
   formTitle = 'Solicita una cita corta',
   formCopy = 'Comparte tus datos y una preferencia de horario. Nosotros retomamos contigo con mas contexto y menos friccion.',
   defaultReason = 'Asesoria para compra o personalizacion',
+  defaultNotes = '',
   source = 'phase1-conversion',
   className = '',
 }) => {
   const { user, isAuthenticated } = useAuth();
-  const [form, setForm] = useState(() => buildInitialForm(user, defaultReason, source));
+  const [form, setForm] = useState(() => buildInitialForm(user, defaultReason, source, defaultNotes));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -82,9 +83,10 @@ const OrvianeConversionSection = ({
       email: current.email || user?.email || '',
       whatsapp: current.whatsapp || user?.whatsapp || '',
       reason: current.reason || defaultReason,
+      notes: current.notes || defaultNotes,
       source,
     }));
-  }, [defaultReason, source, user]);
+  }, [defaultNotes, defaultReason, source, user]);
 
   const actions = useMemo(
     () => [primaryAction, secondaryAction, tertiaryAction].filter(Boolean),
@@ -112,7 +114,7 @@ const OrvianeConversionSection = ({
 
       setSuccess(`${data.message} Referencia ${data.appointmentId}.`);
       setForm((current) => ({
-        ...buildInitialForm(isAuthenticated ? user : null, defaultReason, source),
+        ...buildInitialForm(isAuthenticated ? user : null, defaultReason, source, defaultNotes),
         notes: '',
         preferredDate: current.preferredDate || buildToday(),
       }));
