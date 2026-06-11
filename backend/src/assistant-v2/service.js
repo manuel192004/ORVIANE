@@ -337,36 +337,36 @@ function buildCourtesyMessage(courtesyType, extracted = {}) {
 
   if (courtesyType === 'greeting') {
     const greetings = [
-      `Hola. Qué gusto saludarte. ¿En qué te puedo ayudar hoy?${hasContext ? ' Si quieres retomamos lo que veníamos hablando.' : ''}`,
-      `Buenos días. Estoy aquí para ayudarte con gusto. ¿Buscas algo en particular o solo quieres explorar?`,
-      `Hola, ¿qué tal? Me alegra que estés aquí. Cuéntame, ¿qué te trae por Orviane hoy?`
+      `¡Hola! Qué alegría que estés aquí. Me pones de muy buen humor cuando apareces.${hasContext ? ' Si quieres, retomamos con cariño lo que veníamos hablando.' : ''}`,
+      `Buenos días. Me da mucha ternura cuando alguien se acerca con ganas de crear algo especial. Cuéntame, ¿qué te tiene ilusionada hoy?`,
+      `¡Hola! Me emociona verte por aquí. Cuéntame con confianza, ¿qué te está llamando el corazón en este momento?`
     ];
     return greetings[Math.floor(Math.random() * greetings.length)];
   }
 
   if (courtesyType === 'thanks') {
-    return `Con mucho gusto. Me alegra poder ayudarte.${memoryHint} Estoy aquí cuando quieras seguir mirando opciones, ajustar algo o agendar una cita.`;
+    return `Con mucho gusto. Me emociona poder acompañarte en esto.${memoryHint} Estoy aquí con todo el cariño cuando quieras seguir soñando, ajustar algo o agendar una cita.`;
   }
 
   if (courtesyType === 'wellbeing') {
     const wellbeingReplies = [
-      `Muy bien, gracias por preguntar. Lista y con ganas de ayudarte a encontrar algo bonito.${memoryHint}`,
-      `Estoy excelente, gracias. ¿Y tú cómo estás? Cuéntame, ¿en qué te puedo orientar hoy con las joyas?`,
-      `Muy bien, por aquí todo en orden. Me encanta poder conversar contigo. ¿Qué te gustaría ver o ajustar hoy?`
+      `Muy bien, gracias por preguntar. Me encanta cuando me cuentas cómo estás, me pone de buen humor para ayudarte a encontrar algo que te haga sentir especial.${memoryHint}`,
+      `Estoy excelente, gracias. Me da mucha alegría que preguntes. Cuéntame, ¿cómo te sientes hoy? ¿En qué joya te puedo acompañar?`,
+      `Muy bien, con mucha energía y ganas de ayudarte. Me emociona cuando alguien se toma el tiempo de charlar conmigo. ¿Qué te está llamando la atención últimamente?`
     ];
     return wellbeingReplies[Math.floor(Math.random() * wellbeingReplies.length)];
   }
 
   if (courtesyType === 'acknowledge') {
-    return `Perfecto. ${memoryHint} Cuando quieras seguimos. ¿Quieres que comparemos opciones, miremos otra pieza o afinemos algo de lo que ya vimos?`;
+    return `¡Qué alegría! Me encanta cuando algo te resuena.${memoryHint} Cuando quieras seguimos. ¿Te gustaría que comparemos opciones, miremos otra pieza o afinemos lo que ya vimos?`;
   }
 
   if (courtesyType === 'goodbye') {
-    return `Gracias por tu tiempo. Fue un gusto hablar contigo. Cuando quieras, aquí estoy para seguir ayudándote con tu joya. Que tengas un excelente día.`;
+    return `Gracias por tu tiempo. Me dio mucha alegría poder charlar contigo. Cuando quieras, aquí estoy con todo el cariño para seguir ayudándote con tu joya. Que tengas un hermoso día.`;
   }
 
   if (courtesyType === 'compliment') {
-    return `¡Qué alegría que te haya gustado! ${memoryHint} Si quieres, podemos buscar algo similar pero en otro metal, más discreto, más brillante o totalmente diferente. ¿Qué te parece?`;
+    return `¡Ay, me encanta que te haya gustado! Me pone muy contenta cuando una pieza te emociona.${memoryHint} Si quieres, podemos buscar algo similar en otro metal, más discreto, más brillante o totalmente diferente. ¿Qué te parece?`;
   }
 
   return '';
